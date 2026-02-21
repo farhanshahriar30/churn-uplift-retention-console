@@ -2,25 +2,21 @@
 src/models/uplift/multitreatment.py
 
 Phase A: Goal
-Support multi-treatment uplift for this dataset:
+Train uplift models for multiple treatments vs a shared control:
+- Mens E-Mail vs No E-Mail
+- Womens E-Mail vs No E-Mail
 
-Treatments:
-- Mens E-Mail
-- Womens E-Mail
-Control:
-- No E-Mail
+Then, for each user x:
+- compute uplift for each treatment
+- pick the best treatment if the best uplift > 0, otherwise pick control
 
-Strategy:
-- Train two separate binary uplift models (one-vs-control):
-  1) Mens vs Control
-  2) Womens vs Control
-- For each user x, compute:
-  tau_mens(x), tau_womens(x)
-- Choose the best action:
-  - if both <= 0 -> choose Control
-  - else choose treatment with max uplift
-
-This makes downstream policy optimization easy.
+Phase B: Important implementation choice (artifact saving)
+We do NOT save a MultiTreatmentUpliftModel object to disk because pickling custom
+classes can break depending on import paths.
+Instead, we save a plain dict (payload) containing:
+- fitted preprocessor
+- feature_names
+- for each treatment: the treated and control sklearn models
 """
 
 from __future__ import annotations
@@ -36,44 +32,22 @@ from src.features.build import (
     FeatureBundle,
 )
 from src.models.uplift.t_learner import fit_t_learner, TLearnerModel
-from src.config import TREATMENT_LABELS, CONTROL_LABEL, OUTCOME_CONVERSION
+from src.config import TREATMENT_LABELS, CONTROL_LABEL
 
 
 @dataclass
 class MultiTreatmentUpliftModel:
-    """
-    Phase B: What we store
-    - bundle: feature pipeline fitted on training data for consistency
-    - models: dict mapping treatment label -> fitted binary uplift model
-    """
-
     bundle: FeatureBundle
     models: dict[str, TLearnerModel]
 
     def predict_uplifts(self, df: pd.DataFrame) -> dict[str, np.ndarray]:
-        """
-        Phase C: Predict uplift for each treatment vs control.
-        Returns: { "Mens E-Mail": tau_mens, "Womens E-Mail": tau_womens }
-        """
         X, _ = transform_with_pipeline(self.bundle, df)
         return {label: m.predict_uplift(X) for label, m in self.models.items()}
 
     def recommend_action(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Phase D: Recommend best action per row based on predicted uplift.
-        - If best uplift <= 0 -> CONTROL_LABEL
-        - Else -> argmax uplift treatment
-        Returns a small dataframe with:
-          - best_action
-          - best_uplift
-          - uplift_mens, uplift_womens (columns for transparency)
-        """
         uplifts = self.predict_uplifts(df)
 
-        # Stack in a consistent label order
-        tau_stack = np.vstack(
-            [uplifts[label] for label in TREATMENT_LABELS]
-        ).T  # shape (n, 2)
+        tau_stack = np.vstack([uplifts[label] for label in TREATMENT_LABELS]).T
         best_idx = np.argmax(tau_stack, axis=1)
         best_uplift = tau_stack[np.arange(len(df)), best_idx]
 
@@ -81,14 +55,9 @@ class MultiTreatmentUpliftModel:
         best_action = np.where(best_uplift > 0, best_action, CONTROL_LABEL)
 
         out = pd.DataFrame(
-            {
-                "best_action": best_action,
-                "best_uplift": best_uplift,
-            },
-            index=df.index,
+            {"best_action": best_action, "best_uplift": best_uplift}, index=df.index
         )
 
-        # Add individual treatment uplift columns for visibility
         for label in TREATMENT_LABELS:
             col = "uplift_" + label.lower().replace(" ", "_").replace("-", "_")
             out[col] = uplifts[label]
@@ -98,19 +67,14 @@ class MultiTreatmentUpliftModel:
 
 def fit_multitreatment_tlearner(df_train: pd.DataFrame) -> MultiTreatmentUpliftModel:
     """
-    Phase E: Train one-vs-control T-learners for each treatment.
-
-    Implementation detail:
-    - Fit the feature pipeline ONCE using the full training data (all segments).
-      This keeps feature space consistent across the two binary tasks.
+    Phase C: Training logic
+    - Fit ONE shared feature pipeline on the full training set
     - For each treatment label:
       - filter to {control, treatment}
-      - transform using the shared feature pipeline
-      - train a binary T-learner uplift model
+      - transform using the shared pipeline
+      - fit a T-learner (two outcome models: treated vs control)
     """
-    # Fit shared feature pipeline on full training data
     bundle = fit_feature_pipeline(df_train)
-
     models: dict[str, TLearnerModel] = {}
 
     for label in TREATMENT_LABELS:
@@ -122,8 +86,25 @@ def fit_multitreatment_tlearner(df_train: pd.DataFrame) -> MultiTreatmentUpliftM
     return MultiTreatmentUpliftModel(bundle=bundle, models=models)
 
 
+def to_payload(mt: MultiTreatmentUpliftModel) -> dict:
+    """
+    Phase D: Artifact payload (plain dict only)
+    We store only joblib-safe objects (sklearn estimators + simple python types).
+    """
+    return {
+        "preprocessor": mt.bundle.preprocessor,
+        "feature_names": mt.bundle.feature_names,
+        "treatment_models": {
+            label: {
+                "treated": mt.models[label].model_treated,
+                "control": mt.models[label].model_control,
+            }
+            for label in mt.models.keys()
+        },
+    }
+
+
 if __name__ == "__main__":
-    # Smoke test: train multi-treatment model and recommend actions on validation set.
     train = pd.read_csv("data/processed/train.csv")
     val = pd.read_csv("data/processed/val.csv")
 
@@ -137,8 +118,10 @@ if __name__ == "__main__":
         float(rec["best_uplift"].mean()),
         float(rec["best_uplift"].max()),
     )
+
     from src.config import ARTIFACTS_DIR
     from src.utils.io import save_joblib
 
-    save_joblib(mt, ARTIFACTS_DIR / "uplift_model.joblib")
+    payload = to_payload(mt)
+    save_joblib(payload, ARTIFACTS_DIR / "uplift_model.joblib")
     print("Saved:", ARTIFACTS_DIR / "uplift_model.joblib")
