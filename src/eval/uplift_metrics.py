@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     from src.data.treatment import filter_binary_task
     from src.features.build import fit_feature_pipeline, transform_with_pipeline
-    from src.models.uplift.t_learner import fit_t_learner
+    from src.models.uplift.t_learner_xgb import fit_xgb_t_learner
 
     train = pd.read_csv("data/processed/train.csv")
     val = pd.read_csv("data/processed/val.csv")
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     Xva, yva = transform_with_pipeline(bundle, val_task)
 
     t_tr = train_task["T"].to_numpy(dtype=int)
-    uplift_model = fit_t_learner(Xtr, ytr.to_numpy(), t_tr)
+    uplift_model = fit_xgb_t_learner(Xtr, ytr.to_numpy(), t_tr)
 
     tau_val = uplift_model.predict_uplift(Xva)
 
