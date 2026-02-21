@@ -202,6 +202,4 @@ def save_profile_and_splits() -> None:
 
 if __name__ == "__main__":
     # Phase D2: Running this file directly will generate the artifacts and splits.
-    # Command:
-    #   python -m src.data.preprocess
     save_profile_and_splits()
