@@ -31,14 +31,14 @@ from src.features.build import (
     transform_with_pipeline,
     FeatureBundle,
 )
-from src.models.uplift.t_learner import fit_t_learner, TLearnerModel
+from src.models.uplift.t_learner_xgb import fit_xgb_t_learner
 from src.config import TREATMENT_LABELS, CONTROL_LABEL
 
 
 @dataclass
 class MultiTreatmentUpliftModel:
     bundle: FeatureBundle
-    models: dict[str, TLearnerModel]
+    models: dict[str, object]
 
     def predict_uplifts(self, df: pd.DataFrame) -> dict[str, np.ndarray]:
         X, _ = transform_with_pipeline(self.bundle, df)
@@ -75,13 +75,14 @@ def fit_multitreatment_tlearner(df_train: pd.DataFrame) -> MultiTreatmentUpliftM
       - fit a T-learner (two outcome models: treated vs control)
     """
     bundle = fit_feature_pipeline(df_train)
-    models: dict[str, TLearnerModel] = {}
+    models: dict[str, object] = {}
 
     for label in TREATMENT_LABELS:
         task = filter_binary_task(df_train, label)
         X, y = transform_with_pipeline(bundle, task)
         t = task["T"].to_numpy(dtype=int)
-        models[label] = fit_t_learner(X, y.to_numpy(), t)
+        # We store treated/control sklearn models inside the payload, so we don't need a TLearner class here.
+        models[label] = fit_xgb_t_learner(X, y.to_numpy(), t)
 
     return MultiTreatmentUpliftModel(bundle=bundle, models=models)
 
