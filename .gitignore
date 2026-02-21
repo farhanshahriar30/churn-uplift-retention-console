@@ -205,3 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local data
+data/raw/
+data/processed/
+
+# Secrets
+.env
+
+# Local artifacts (generated)
+artifacts/
+*.pkl
+*.joblib
+
+# Environments
+.venv/
+venv/
