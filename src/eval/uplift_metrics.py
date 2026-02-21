@@ -150,8 +150,8 @@ if __name__ == "__main__":
     train = pd.read_csv("data/processed/train.csv")
     val = pd.read_csv("data/processed/val.csv")
 
-    train_task = filter_binary_task(train, "Mens E-Mail")
-    val_task = filter_binary_task(val, "Mens E-Mail")
+    train_task = filter_binary_task(train, "Womens E-Mail")
+    val_task = filter_binary_task(val, "Womens E-Mail")
 
     bundle = fit_feature_pipeline(train_task)
     Xtr, ytr = transform_with_pipeline(bundle, train_task)
