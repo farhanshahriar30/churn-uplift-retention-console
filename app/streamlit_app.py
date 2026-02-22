@@ -37,7 +37,7 @@ This console aims to maximize **ROI per message** by targeting customers with th
 
 
 st.set_page_config(
-    page_title="Churn + Uplift Retention Console",
+    page_title="Retention Decision Console",
     page_icon="📈",
     layout="wide",
 )

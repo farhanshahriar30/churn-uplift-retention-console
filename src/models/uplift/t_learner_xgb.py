@@ -1,13 +1,11 @@
 """
-src/models/uplift/t_learner_xgb.py
-
 Phase A: Goal
 Same T-learner idea, but with XGBoost as the base learner:
 - model treated: P(Y=1 | T=1, X)
 - model control: P(Y=1 | T=0, X)
 uplift = p1 - p0
 
-Phase B: Why XGBoost here
+Phase B: Why XGBoost
 Even if the outcome model isn't improved by boosting,
 uplift ranking can still improve because we're learning different response
 functions for treated vs control.

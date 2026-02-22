@@ -1,6 +1,4 @@
 """
-src/policy/targeting.py
-
 Phase A: Goal
 Choose who to target under constraints (budget and/or max outreach volume)
 using uplift estimates.

@@ -90,7 +90,9 @@ st.divider()
 st.subheader("Results")
 
 # Phase F: Visual comparison first (fast to interpret)
-st.caption("Expected incremental conversions (higher is better)")
+st.caption(
+    "All strategies use the same budget/capacity. The only difference is *who* they target. Higher bar = more expected incremental conversions."
+)
 st.bar_chart(
     {
         "uplift": out["uplift"]["expected_incremental_conversions"],
@@ -101,6 +103,10 @@ st.bar_chart(
 )
 
 # Phase G: Detailed metrics per strategy
+st.caption(
+    "Cost per incremental conversion = total spend ÷ expected incremental conversions (lower is better)."
+)
+
 c1, c2, c3 = st.columns(3)
 with c1:
     st.metric(
@@ -143,6 +149,10 @@ st.subheader("Action mix (uplift strategy)")
 
 # Phase H: Show which email campaign gets chosen under uplift targeting
 if out["uplift"]["action_mix"]:
+    st.caption(
+        "Given current constraints, this shows which campaign the uplift strategy chooses most often."
+    )
+
     st.bar_chart(out["uplift"]["action_mix"])
 else:
     st.info("No users selected under current constraints.")

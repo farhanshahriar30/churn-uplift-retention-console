@@ -3,9 +3,9 @@ app/pages/2_Churn_Risk.py
 
 Phase A: Goal
 Show the conversion probability model outputs:
-- distribution of predicted probabilities
-- top users by predicted conversion probability
+- how well the model ranks customers (deciles)
 - metrics snapshot (AUC/PR-AUC + lift)
+- top users by predicted conversion probability
 
 We use validation split by default so the page loads quickly and avoids leakage.
 """
@@ -49,13 +49,14 @@ This page predicts **who is likely to convert** (or “stay engaged”) in the n
 
 - **Conversion probability** is the model’s estimate of “chance this customer buys in the next period.”
 - **Lift** answers: “If we target the top X% most likely to convert, how much better is that than targeting randomly?”
-- We use **calibrated probabilities**, which means the numbers behave like real probabilities (they average out close to the true base rate).
+- **Deciles** show how customers behave as we move from low → high predicted probability:
+  the top decile should have a higher actual conversion rate than the bottom decile.
 
 This page is about **ranking and understanding baseline likelihood**. It does *not* tell you who to target with an offer (that’s uplift).
 """
 )
 
-# Phase B: Load artifacts
+# Phase B: Load artifacts (use calibrated model if present for probability display)
 preprocess_payload = load_joblib(ARTIFACTS_DIR / "preprocess.joblib")
 cal_path = ARTIFACTS_DIR / "churn_model_calibrated.joblib"
 if cal_path.exists():
@@ -78,10 +79,9 @@ out = df.copy()
 out["p_conversion"] = p_conv
 out["risk"] = risk
 
-# Phase E: Metrics panels
+# Phase E: Metrics panels (model quality + lift)
 col1, col2, col3 = st.columns(3)
 
-# AUC/PR-AUC
 metrics_path = ARTIFACTS_DIR / "churn_metrics.json"
 if metrics_path.exists():
     m = _load_json(metrics_path)
@@ -89,7 +89,6 @@ if metrics_path.exists():
         st.subheader("Discrimination")
         st.metric("ROC-AUC", f"{m[split]['calibrated']['roc_auc']:.3f}")
         st.metric("PR-AUC", f"{m[split]['calibrated']['pr_auc']:.4f}")
-
 else:
     with col1:
         st.warning("Missing artifacts/churn_metrics.json")
@@ -117,20 +116,42 @@ with col3:
 
 st.divider()
 
-# Phase F: Distribution (bin into a histogram so it stays readable)
-st.subheader("Predicted probability distribution")
+# Phase F: Decile ranking view (more interpretable than histogram for rare events)
+st.subheader("Ranking quality (deciles)")
 
-bins = st.slider("Histogram bins", min_value=10, max_value=80, value=40, step=5)
-hist, bin_edges = np.histogram(p_conv.clip(0, 1), bins=bins, range=(0.0, 1.0))
+# Create deciles where Decile 10 = highest predicted probability
+tmp = out[["p_conversion", OUTCOME_CONVERSION]].copy()
+tmp["decile"] = pd.qcut(tmp["p_conversion"], q=10, labels=False, duplicates="drop") + 1
 
-hist_df = pd.DataFrame(
-    {
-        "bin_left": bin_edges[:-1],
-        "count": hist,
-    }
-).set_index("bin_left")
+decile_table = tmp.groupby("decile", as_index=False).agg(
+    n=("p_conversion", "size"),
+    avg_pred=("p_conversion", "mean"),
+    actual_rate=(OUTCOME_CONVERSION, "mean"),
+)
 
-st.bar_chart(hist_df["count"], height=260)
+# Make it read naturally: Decile 10 at top (best predicted)
+decile_table = decile_table.sort_values("decile", ascending=False).reset_index(
+    drop=True
+)
+
+# Add lift per decile vs base
+decile_table["lift_vs_base"] = (
+    decile_table["actual_rate"] / base_rate if base_rate > 0 else np.nan
+)
+
+st.caption("Decile 10 contains customers with the highest predicted probability.")
+st.caption(
+    "Decile 10 = highest predicted probability. If the model ranks well, actual conversion should generally be higher in Decile 10 than Decile 1."
+)
+st.dataframe(decile_table)
+
+# Chart: actual vs predicted by decile
+chart_df = decile_table.set_index("decile")[["avg_pred", "actual_rate"]]
+st.caption(
+    "Two lines: average predicted probability vs actual conversion rate by decile. Some wobble is normal because conversions are rare."
+)
+
+st.line_chart(chart_df)
 
 st.divider()
 
@@ -152,6 +173,9 @@ cols_to_show = [
     "p_conversion",
     "risk",
 ]
+st.caption(
+    "These are the highest predicted-probability customers. This is a ranking view (not yet a targeting recommendation)."
+)
 
 st.dataframe(
     out.sort_values("p_conversion", ascending=False)[cols_to_show]

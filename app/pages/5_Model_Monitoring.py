@@ -51,6 +51,10 @@ rates = pd.DataFrame(
         ],
     }
 )
+st.caption(
+    "If base conversion rate shifts a lot over time/splits, model performance can drift because customer behavior changed."
+)
+
 st.dataframe(rates)
 
 # Phase E: Treatment mix (sanity check randomization stayed stable across splits)
@@ -75,6 +79,10 @@ mix = pd.DataFrame(
         ],
     }
 )
+st.caption(
+    "Treatment assignment should stay close to ~1/3 each. Large deviations can indicate the experiment or targeting logic changed."
+)
+
 st.dataframe(mix)
 
 st.divider()
@@ -104,6 +112,9 @@ def _summ(df: pd.DataFrame) -> dict:
     }
 
 
+st.caption(
+    "Quick drift scan: compare train vs val vs test summaries. Big differences can signal a data shift worth investigating."
+)
 col1, col2, col3 = st.columns(3)
 with col1:
     st.write("Train")

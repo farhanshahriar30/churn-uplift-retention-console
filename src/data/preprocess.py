@@ -1,6 +1,4 @@
 """
-src/data/preprocess.py
-
 Phase A: What this module does
 - Loads the raw Hillstrom dataset (your email RCT dataset).
 - Creates a lightweight dataset profile (base rates + missingness).

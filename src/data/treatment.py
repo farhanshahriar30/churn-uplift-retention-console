@@ -2,7 +2,7 @@
 Phase A: Goal
 We need clean treatment labels to support uplift modeling.
 
-Your dataset has 3 groups in `segment`:
+dataset has 3 groups in `segment`:
 - No E-Mail (control)
 - Mens E-Mail (treatment A)
 - Womens E-Mail (treatment B)

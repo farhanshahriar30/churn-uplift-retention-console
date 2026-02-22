@@ -1,5 +1,4 @@
 """
-src/models/churn.py
 Baseline outcome model: predict conversion probability.
 
 Phase A: Goal

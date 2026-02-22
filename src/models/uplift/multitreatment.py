@@ -1,6 +1,4 @@
 """
-src/models/uplift/multitreatment.py
-
 Phase A: Goal
 Train uplift models for multiple treatments vs a shared control:
 - Mens E-Mail vs No E-Mail

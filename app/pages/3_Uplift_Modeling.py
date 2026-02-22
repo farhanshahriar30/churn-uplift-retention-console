@@ -136,6 +136,10 @@ rec = recommend_best_action(uplifts)
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Best action mix")
+    st.caption(
+        "Recommended action per customer. **No E-Mail** means the model expects no incremental benefit from sending an email."
+    )
+
     st.bar_chart(rec["best_action"].value_counts())
 
 with col2:
@@ -158,6 +162,10 @@ hist_df = pd.DataFrame(
         for label in TREATMENT_LABELS
     }
 )
+st.caption(
+    "Right side = positive uplift (email increases conversion). Left side = negative uplift (email may reduce conversion)."
+)
+
 st.bar_chart(hist_df, height=260)
 
 pct_rows = []
@@ -172,7 +180,13 @@ for label in TREATMENT_LABELS:
         }
     )
 
-st.caption("Uplift percentiles (summarize spread without noise).")
+st.caption(
+    "Percentiles summarize uplift spread. p50 is the median effect; p95 shows the high-responders tail."
+)
+st.caption(
+    "AUUC checks whether the uplift ranking is useful. Higher AUUC means better at finding customers who truly benefit from outreach."
+)
+
 st.dataframe(pd.DataFrame(pct_rows))
 
 st.divider()

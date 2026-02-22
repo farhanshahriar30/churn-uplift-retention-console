@@ -152,6 +152,10 @@ with col3:
         )
 
         st.write("Strategy comparison (expected incremental conversions):")
+
+        st.caption(
+            "This compares strategies under the same constraints. Higher bar = more expected *incremental* conversions (additional purchases caused by targeting)."
+        )
         st.bar_chart(
             {
                 "uplift": sim["uplift"]["expected_incremental_conversions"],
@@ -166,7 +170,10 @@ with col3:
 
 st.divider()
 
-# -------- Artifact checklist --------
+# Artifact checklist
+st.caption(
+    "These files are the saved outputs (models + metadata) that power the app without retraining."
+)
 st.subheader("Artifacts present")
 
 artifact_files = [

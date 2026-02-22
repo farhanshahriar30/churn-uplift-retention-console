@@ -1,6 +1,4 @@
 """
-src/utils/io.py
-
 Phase A: Goal
 Tiny helper functions to save/load Python objects as artifacts.
 We use joblib because it handles sklearn objects well.
