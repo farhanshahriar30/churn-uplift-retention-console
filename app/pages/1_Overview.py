@@ -20,6 +20,11 @@ if str(REPO_ROOT) not in sys.path:
 import json
 import streamlit as st
 
+import streamlit as st
+
+st.set_page_config(
+    page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
+)
 
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 

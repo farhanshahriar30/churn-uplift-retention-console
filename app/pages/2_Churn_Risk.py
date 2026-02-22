@@ -25,6 +25,13 @@ import streamlit as st
 from src.config import FEATURE_COLS, OUTCOME_CONVERSION
 from src.utils.io import load_joblib
 
+import streamlit as st
+
+st.set_page_config(
+    page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
+)
+
+
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 
 
