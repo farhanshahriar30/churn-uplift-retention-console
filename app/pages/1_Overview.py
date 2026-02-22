@@ -1,6 +1,4 @@
 """
-app/pages/1_Overview.py
-
 Phase A: Goal
 Show the project snapshot using saved artifacts:
 - dataset_profile.json
@@ -53,46 +51,9 @@ If you only have 30 seconds: the goal is to **spend a fixed budget on outreach a
 """
 )
 
-
-# -------- Actions (local-only training) --------
-st.subheader("Actions")
-
-colA, colB = st.columns(2)
-
-with colA:
-    st.caption("Reload artifacts (safe everywhere).")
-    if st.button("Reload artifacts"):
-        st.rerun()
-
-with colB:
-    st.caption("Train locally (disabled unless ENABLE_LOCAL_TRAINING=1).")
-    if not ENABLE_LOCAL_TRAINING:
-        st.button("Train models (local only)", disabled=True)
-        st.info(
-            "Training is disabled here. Set ENABLE_LOCAL_TRAINING=1 locally to enable it."
-        )
-    else:
-        if st.button("Train models (local only)"):
-            with st.spinner("Running training + evaluation scripts..."):
-                # Use the current interpreter (the one running Streamlit) so the venv is respected
-                subprocess.run(
-                    [sys.executable, "-m", "src.data.preprocess"], check=True
-                )
-                subprocess.run([sys.executable, "-m", "src.models.churn"], check=True)
-                subprocess.run(
-                    [sys.executable, "-m", "src.models.uplift.multitreatment"],
-                    check=True,
-                )
-                subprocess.run(
-                    [sys.executable, "-m", "src.eval.policy_metrics"], check=True
-                )
-
-            st.success("Done. Artifacts updated.")
-            st.rerun()
-
 st.divider()
 
-# -------- Snapshot cards --------
+# Snapshot cards
 col1, col2, col3 = st.columns(3)
 
 profile_path = ARTIFACTS_DIR / "dataset_profile.json"
@@ -195,3 +156,43 @@ for f in artifact_files:
 st.write("✅ Present:", present)
 if missing:
     st.write("⚠️ Missing:", missing)
+
+st.divider()
+
+# Actions (local-only training)
+# Phase B: Advanced controls at the bottom to keep the main page "business-first".
+# These are useful for you locally (regenerate artifacts), but not required for viewers.
+st.subheader("Advanced (local)")
+
+colA, colB = st.columns(2)
+
+with colA:
+    st.caption("Reload artifacts (safe everywhere).")
+    if st.button("Reload artifacts"):
+        st.rerun()
+
+with colB:
+    st.caption("Train locally (disabled unless ENABLE_LOCAL_TRAINING=1).")
+    if not ENABLE_LOCAL_TRAINING:
+        st.button("Train models (local only)", disabled=True)
+        st.info(
+            "Training is disabled here. Set ENABLE_LOCAL_TRAINING=1 locally to enable it."
+        )
+    else:
+        if st.button("Train models (local only)"):
+            with st.spinner("Running training + evaluation scripts..."):
+                # Use the current interpreter (the one running Streamlit) so the venv is respected
+                subprocess.run(
+                    [sys.executable, "-m", "src.data.preprocess"], check=True
+                )
+                subprocess.run([sys.executable, "-m", "src.models.churn"], check=True)
+                subprocess.run(
+                    [sys.executable, "-m", "src.models.uplift.multitreatment"],
+                    check=True,
+                )
+                subprocess.run(
+                    [sys.executable, "-m", "src.eval.policy_metrics"], check=True
+                )
+
+            st.success("Done. Artifacts updated.")
+            st.rerun()

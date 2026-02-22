@@ -1,6 +1,4 @@
 """
-app/pages/2_Churn_Risk.py
-
 Phase A: Goal
 Show the conversion probability model outputs:
 - how well the model ranks customers (deciles)

@@ -1,6 +1,4 @@
 """
-app/streamlit_app.py
-
 Phase A: Goal
 Provide a single Streamlit entrypoint. Streamlit automatically discovers files in
 app/pages/ as separate pages, so this file focuses on:
