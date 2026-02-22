@@ -105,6 +105,25 @@ def auuc(curve: pd.DataFrame) -> float:
 # Phase F: Load artifacts + compute uplift signals for the chosen split
 st.header("Uplift Modeling")
 
+st.info(
+    """
+**What you’re seeing**
+
+Uplift answers a different question than risk:
+
+> “If we send an email to this customer, how much does it *change* their chance of converting compared to sending nothing?”
+
+- **Mens uplift** = expected change in conversion if we send the Mens campaign vs No E-Mail.
+- **Womens uplift** = expected change in conversion if we send the Womens campaign vs No E-Mail.
+- **Best action mix** shows which option the model recommends most often (Mens / Womens / No E-Mail).
+- **AUUC** is a summary score that checks whether the uplift ranking is useful (higher means the model is better at finding people who truly benefit).
+
+Business translation: this helps avoid wasting offers on:
+- people who would buy anyway, and
+- people who won’t respond even with an offer.
+"""
+)
+
 split = st.radio("Split", ["val", "test"], horizontal=True)
 df = pd.read_csv(f"data/processed/{split}.csv")
 

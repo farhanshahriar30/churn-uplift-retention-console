@@ -39,6 +39,21 @@ def _load_json(path: Path) -> dict:
 
 st.header("Overview")
 
+st.info(
+    """
+**What you’re seeing**
+
+This dashboard is a decision console for retention campaigns.
+
+- **Dataset**: 64k customers and what we knew about them before the campaign (recency, spend history, channels, etc.).
+- **Splits**: the data is split into **train / validation / test** so we can build models and then verify they work on unseen customers.
+- **Policy Simulation**: a “what-if” estimate of how many *extra* conversions we expect if we target customers using the uplift strategy, compared with simpler strategies.
+
+If you only have 30 seconds: the goal is to **spend a fixed budget on outreach and maximize additional conversions**, not just contact the highest-risk users.
+"""
+)
+
+
 # -------- Actions (local-only training) --------
 st.subheader("Actions")
 

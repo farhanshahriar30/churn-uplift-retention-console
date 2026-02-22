@@ -41,6 +41,20 @@ def _load_json(path: Path) -> dict:
 
 st.header("Outcome Model (Conversion Probability)")
 
+st.info(
+    """
+**What you’re seeing**
+
+This page predicts **who is likely to convert** (or “stay engaged”) in the next window.
+
+- **Conversion probability** is the model’s estimate of “chance this customer buys in the next period.”
+- **Lift** answers: “If we target the top X% most likely to convert, how much better is that than targeting randomly?”
+- We use **calibrated probabilities**, which means the numbers behave like real probabilities (they average out close to the true base rate).
+
+This page is about **ranking and understanding baseline likelihood**. It does *not* tell you who to target with an offer (that’s uplift).
+"""
+)
+
 # Phase B: Load artifacts
 preprocess_payload = load_joblib(ARTIFACTS_DIR / "preprocess.joblib")
 cal_path = ARTIFACTS_DIR / "churn_model_calibrated.joblib"

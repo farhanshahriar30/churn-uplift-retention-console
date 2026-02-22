@@ -23,6 +23,30 @@ st.set_page_config(page_title="Targeting Simulator", page_icon="🎯", layout="w
 #   3) random targeting
 st.header("Targeting Simulator 🎯")
 
+st.info(
+    """
+**What you’re seeing**
+
+This is the decision engine.
+
+You set real-world constraints:
+- **Budget** (how much you can spend),
+- **Cost per email** (Mens / Womens),
+- **Max outreach volume** (capacity).
+
+Then we compare three strategies under the same constraints:
+1) **Uplift targeting**: target customers who benefit most from outreach.
+2) **Risk targeting**: target customers based on a risk/likelihood score.
+3) **Random**: a baseline.
+
+Key outputs:
+- **Expected incremental conversions**: how many *additional* conversions we expect because of targeting.
+- **Cost per incremental conversion**: efficiency, “how much spend per extra conversion.”
+
+Business translation: this is where the model becomes a **policy** (who to contact, and with which campaign).
+"""
+)
+
 # Phase C: Collect user inputs that define the policy constraints
 colA, colB, colC = st.columns(3)
 

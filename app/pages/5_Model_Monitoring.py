@@ -20,6 +20,20 @@ st.set_page_config(page_title="Model Monitoring", page_icon="🩺", layout="wide
 
 st.header("Model Monitoring 🩺")
 
+st.info(
+    """
+**What you’re seeing**
+
+This page checks whether the data and campaign setup look stable.
+
+- **Base rates**: conversion rate across train/val/test. Big differences can mean the environment changed.
+- **Treatment mix**: % receiving No E-Mail vs Mens vs Womens. This should stay consistent because assignment was randomized.
+- **Feature summary**: quick scan to spot obvious shifts (for example, customers suddenly becoming “more urban” or spending patterns changing).
+
+Business translation: this helps answer “Can we trust the model outputs today the way we trusted them when we trained it?”
+"""
+)
+
 # Phase C: Load the dataset splits
 train = pd.read_csv("data/processed/train.csv")
 val = pd.read_csv("data/processed/val.csv")
