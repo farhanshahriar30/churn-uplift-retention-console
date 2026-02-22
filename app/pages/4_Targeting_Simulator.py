@@ -1,29 +1,29 @@
 import sys
 from pathlib import Path
 
+# Phase A: Make sure Streamlit can import from `src/` when running multipage apps
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-from src.policy.targeting import PolicyInputs
 from src.eval.policy_metrics import simulate_strategies
+from src.policy.targeting import PolicyInputs
 
 st.set_page_config(page_title="Targeting Simulator", page_icon="🎯", layout="wide")
 
-"""
-Phase A: Page purpose
-Interactive “what-if” console:
-- choose constraints (budget, max volume, costs)
-- compare uplift vs risk vs random under those constraints
-- show expected impact metrics
-"""
-
+# Phase B: Page purpose
+# This is an interactive "what-if" console:
+# - user sets constraints (budget, max outreach volume, per-email costs)
+# - we compare three strategies under identical constraints:
+#   1) uplift targeting
+#   2) risk targeting
+#   3) random targeting
 st.header("Targeting Simulator 🎯")
 
-# Phase B: Inputs
+# Phase C: Collect user inputs that define the policy constraints
 colA, colB, colC = st.columns(3)
 
 with colA:
@@ -44,6 +44,8 @@ with colC:
     )
     st.caption("Objective is retained_customers for now (profit comes next).")
 
+# Phase D: Load the selected split and build a PolicyInputs object
+# PolicyInputs is the single config object used by the decision layer.
 df = pd.read_csv(f"data/processed/{split}.csv")
 
 inputs = PolicyInputs(
@@ -55,12 +57,26 @@ inputs = PolicyInputs(
     objective="retained_customers",
 )
 
-# Phase C: Run simulation
+# Phase E: Run the simulator
+# simulate_strategies() applies the same constraints for each strategy and returns
+# expected incremental conversions and cost-efficiency metrics.
 out = simulate_strategies(df, inputs)
 
 st.divider()
 st.subheader("Results")
 
+# Phase F: Visual comparison first (fast to interpret)
+st.caption("Expected incremental conversions (higher is better)")
+st.bar_chart(
+    {
+        "uplift": out["uplift"]["expected_incremental_conversions"],
+        "risk": out["risk"]["expected_incremental_conversions"],
+        "random": out["random"]["expected_incremental_conversions"],
+    },
+    height=220,
+)
+
+# Phase G: Detailed metrics per strategy
 c1, c2, c3 = st.columns(3)
 with c1:
     st.metric(
@@ -100,6 +116,8 @@ with c3:
 
 st.divider()
 st.subheader("Action mix (uplift strategy)")
+
+# Phase H: Show which email campaign gets chosen under uplift targeting
 if out["uplift"]["action_mix"]:
     st.bar_chart(out["uplift"]["action_mix"])
 else:

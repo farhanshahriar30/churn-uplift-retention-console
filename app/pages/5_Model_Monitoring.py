@@ -1,63 +1,63 @@
 import sys
 from pathlib import Path
 
+# Phase A: Ensure repo root is on PYTHONPATH so `import src...` works under Streamlit
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 from src.config import FEATURE_COLS, OUTCOME_CONVERSION, TREATMENT_COL
 
 st.set_page_config(page_title="Model Monitoring", page_icon="🩺", layout="wide")
 
-"""
-Phase A: Page purpose
-Basic monitoring-style checks (lightweight):
-- base conversion rate by split
-- treatment mix by split
-- simple feature summaries to spot big shifts
-"""
+# Phase B: Page purpose (lightweight monitoring checks)
+# - base conversion rate by split
+# - treatment mix by split
+# - quick per-feature summaries to spot large distribution shifts
 
 st.header("Model Monitoring 🩺")
 
+# Phase C: Load the dataset splits
 train = pd.read_csv("data/processed/train.csv")
 val = pd.read_csv("data/processed/val.csv")
 test = pd.read_csv("data/processed/test.csv")
 
-# Phase B: Base rates
+# Phase D: Base rates (conversion rate per split)
 st.subheader("Base rates")
 rates = pd.DataFrame(
     {
         "split": ["train", "val", "test"],
         "conversion_rate": [
-            train[OUTCOME_CONVERSION].mean(),
-            val[OUTCOME_CONVERSION].mean(),
-            test[OUTCOME_CONVERSION].mean(),
+            float(train[OUTCOME_CONVERSION].mean()),
+            float(val[OUTCOME_CONVERSION].mean()),
+            float(test[OUTCOME_CONVERSION].mean()),
         ],
     }
 )
 st.dataframe(rates)
 
+# Phase E: Treatment mix (sanity check randomization stayed stable across splits)
 st.subheader("Treatment mix")
 mix = pd.DataFrame(
     {
         "split": ["train", "val", "test"],
         "No E-Mail": [
-            (train[TREATMENT_COL] == "No E-Mail").mean(),
-            (val[TREATMENT_COL] == "No E-Mail").mean(),
-            (test[TREATMENT_COL] == "No E-Mail").mean(),
+            float((train[TREATMENT_COL] == "No E-Mail").mean()),
+            float((val[TREATMENT_COL] == "No E-Mail").mean()),
+            float((test[TREATMENT_COL] == "No E-Mail").mean()),
         ],
         "Mens E-Mail": [
-            (train[TREATMENT_COL] == "Mens E-Mail").mean(),
-            (val[TREATMENT_COL] == "Mens E-Mail").mean(),
-            (test[TREATMENT_COL] == "Mens E-Mail").mean(),
+            float((train[TREATMENT_COL] == "Mens E-Mail").mean()),
+            float((val[TREATMENT_COL] == "Mens E-Mail").mean()),
+            float((test[TREATMENT_COL] == "Mens E-Mail").mean()),
         ],
         "Womens E-Mail": [
-            (train[TREATMENT_COL] == "Womens E-Mail").mean(),
-            (val[TREATMENT_COL] == "Womens E-Mail").mean(),
-            (test[TREATMENT_COL] == "Womens E-Mail").mean(),
+            float((train[TREATMENT_COL] == "Womens E-Mail").mean()),
+            float((val[TREATMENT_COL] == "Womens E-Mail").mean()),
+            float((test[TREATMENT_COL] == "Womens E-Mail").mean()),
         ],
     }
 )
@@ -65,7 +65,10 @@ st.dataframe(mix)
 
 st.divider()
 
-# Phase C: Feature summaries
+# Phase F: Feature summary (quick drift scan)
+# We show simple summaries rather than heavy drift tooling:
+# - numeric: mean/std and quartiles
+# - categorical: top values
 st.subheader("Feature summary (quick drift scan)")
 
 feature = st.selectbox("Feature", FEATURE_COLS)
@@ -76,15 +79,15 @@ def _summ(df: pd.DataFrame) -> dict:
     if s.dtype == "object":
         top = s.value_counts().head(5).to_dict()
         return {"type": "categorical", "top_values": top}
-    else:
-        return {
-            "type": "numeric",
-            "mean": float(s.mean()),
-            "std": float(s.std()),
-            "p25": float(s.quantile(0.25)),
-            "p50": float(s.quantile(0.50)),
-            "p75": float(s.quantile(0.75)),
-        }
+
+    return {
+        "type": "numeric",
+        "mean": float(s.mean()),
+        "std": float(s.std()),
+        "p25": float(s.quantile(0.25)),
+        "p50": float(s.quantile(0.50)),
+        "p75": float(s.quantile(0.75)),
+    }
 
 
 col1, col2, col3 = st.columns(3)

@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-# Ensure repo root is on PYTHONPATH so `import src...` works under Streamlit
+# Phase A: Ensure repo root is on PYTHONPATH so `import src...` works under Streamlit
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -11,8 +11,8 @@ import pandas as pd
 import streamlit as st
 
 from src.config import FEATURE_COLS, CONTROL_LABEL, TREATMENT_LABELS, OUTCOME_CONVERSION
-from src.utils.io import load_joblib
 from src.data.treatment import filter_binary_task
+from src.utils.io import load_joblib
 
 st.set_page_config(
     page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
@@ -21,23 +21,18 @@ st.set_page_config(
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 
 
+# Phase B: Compute per-treatment uplift arrays
+# For each treatment label:
+# - p1(x) = P(Y=1 | T=1, X=x) from the treated model
+# - p0(x) = P(Y=1 | T=0, X=x) from the control model
+# - uplift = p1(x) - p0(x)
 def compute_uplifts(df: pd.DataFrame, payload: dict) -> dict[str, np.ndarray]:
-    """
-    Phase B: Compute per-treatment uplift arrays.
-
-    Steps:
-    1) Transform X using the saved preprocessor
-    2) For each treatment label:
-       - p1(x) = treated_model.predict_proba(X)[:,1]
-       - p0(x) = control_model.predict_proba(X)[:,1]
-       - uplift = p1(x) - p0(x)
-    """
     preprocessor = payload["preprocessor"]
     treatment_models = payload["treatment_models"]
 
     X = preprocessor.transform(df[FEATURE_COLS])
 
-    uplifts = {}
+    uplifts: dict[str, np.ndarray] = {}
     for label in TREATMENT_LABELS:
         m_treated = treatment_models[label]["treated"]
         m_control = treatment_models[label]["control"]
@@ -48,15 +43,10 @@ def compute_uplifts(df: pd.DataFrame, payload: dict) -> dict[str, np.ndarray]:
     return uplifts
 
 
+# Phase C: Recommend the single best action per user
+# - pick the treatment with the highest uplift
+# - if best uplift <= 0, recommend the control action (No E-Mail)
 def recommend_best_action(uplifts: dict[str, np.ndarray]) -> pd.DataFrame:
-    """
-    Phase C: Choose the best action per user.
-
-    Logic:
-    - Stack uplift scores (n_users x n_treatments)
-    - best_action = argmax uplift
-    - If best_uplift <= 0 -> recommend CONTROL_LABEL (No E-Mail)
-    """
     tau_stack = np.vstack([uplifts[label] for label in TREATMENT_LABELS]).T
     best_idx = np.argmax(tau_stack, axis=1)
     best_uplift = tau_stack[np.arange(tau_stack.shape[0]), best_idx]
@@ -67,19 +57,10 @@ def recommend_best_action(uplifts: dict[str, np.ndarray]) -> pd.DataFrame:
     return pd.DataFrame({"best_action": best_action, "best_uplift": best_uplift})
 
 
+# Phase D: Build a Qini-style curve for one-vs-control evaluation
+# We estimate cumulative incremental conversions as we target more users (sorted by uplift):
+# incremental = n_treated_so_far * (rate_treated_so_far - rate_control_so_far)
 def qini_curve(df_binary: pd.DataFrame, uplift_scores: np.ndarray) -> pd.DataFrame:
-    """
-    Phase D: Build a Qini-style curve for a binary task.
-
-    df_binary must contain:
-    - T: 0/1 treatment indicator
-    - conversion: 0/1 outcome
-
-    Curve definition (one common estimator):
-    - Sort by predicted uplift descending.
-    - As we include more users, track:
-      incremental = n_treated_so_far * (rate_treated_so_far - rate_control_so_far)
-    """
     tmp = df_binary.copy()
     tmp["uplift"] = uplift_scores
     tmp = tmp.sort_values("uplift", ascending=False).reset_index(drop=True)
@@ -88,8 +69,8 @@ def qini_curve(df_binary: pd.DataFrame, uplift_scores: np.ndarray) -> pd.DataFra
     y = tmp[OUTCOME_CONVERSION].to_numpy(dtype=int)
 
     inc, frac = [], []
-
     n = len(tmp)
+
     treated_count = control_count = 0
     treated_y = control_y = 0
 
@@ -111,18 +92,17 @@ def qini_curve(df_binary: pd.DataFrame, uplift_scores: np.ndarray) -> pd.DataFra
     return pd.DataFrame({"frac": frac, "incremental": inc})
 
 
+# Phase E: Summarize the Qini curve by area-under-curve (AUUC)
+# Higher AUUC means better uplift ranking under this estimator.
 def auuc(curve: pd.DataFrame) -> float:
-    """
-    Phase E: Summarize the curve area (AUUC).
-    Higher means “better uplift ordering” under this estimator.
-    """
     x = curve["frac"].to_numpy()
     y = curve["incremental"].to_numpy()
     return float(np.trapezoid(y, x))
 
 
-# ---------------- UI ----------------
+# UI
 
+# Phase F: Load artifacts + compute uplift signals for the chosen split
 st.header("Uplift Modeling")
 
 split = st.radio("Split", ["val", "test"], horizontal=True)
@@ -133,6 +113,7 @@ payload = load_joblib(ARTIFACTS_DIR / "uplift_model.joblib")
 uplifts = compute_uplifts(df, payload)
 rec = recommend_best_action(uplifts)
 
+# Phase G: High-level summaries (action mix + best uplift range)
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Best action mix")
@@ -145,9 +126,11 @@ with col2:
     st.metric("Max", f"{rec['best_uplift'].max():.4f}")
 
 st.divider()
+
+# Phase H: Distribution view (histogram + percentiles)
+# Histogram is more readable than plotting every point as a time-series.
 st.subheader("Per-treatment uplift distributions")
 
-# Histogram comparison (cleaner than the noisy time-series style line plot)
 bins = st.slider("Histogram bins", min_value=20, max_value=120, value=60, step=10)
 
 hist_df = pd.DataFrame(
@@ -158,7 +141,6 @@ hist_df = pd.DataFrame(
 )
 st.bar_chart(hist_df, height=260)
 
-# Percentiles table (p5/p50/p95)
 pct_rows = []
 for label in TREATMENT_LABELS:
     tau = uplifts[label]
@@ -171,10 +153,16 @@ for label in TREATMENT_LABELS:
         }
     )
 
-st.caption("Uplift percentiles (helps summarize spread without noise).")
+st.caption("Uplift percentiles (summarize spread without noise).")
 st.dataframe(pd.DataFrame(pct_rows))
 
 st.divider()
+
+# Phase I: AUUC evaluation (one-vs-control)
+# For each treatment:
+# - filter to {treatment, control} and build binary T
+# - compute tau for that label
+# - compute AUUC from Qini-style curve
 st.subheader("AUUC (one-vs-control evaluation)")
 
 rows = []
