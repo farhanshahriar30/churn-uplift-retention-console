@@ -208,15 +208,18 @@ __marimo__/
 
 # Local data
 data/raw/
-data/processed/
 
 # Secrets
 .env
 
 # Local artifacts (generated)
-artifacts/
 *.pkl
 *.joblib
+
+# Allow deployment artifacts (small, demo-ready)
+!artifacts/
+!artifacts/*.joblib
+!artifacts/*.json
 
 # Environments
 .venv/

@@ -1,0 +1,40 @@
+{
+  "inputs": {
+    "budget": 200.0,
+    "cost_mens": 0.02,
+    "cost_womens": 0.02,
+    "max_volume": 5000,
+    "objective": "retained_customers"
+  },
+  "uplift": {
+    "n_selected": 5000,
+    "total_cost": 100.0,
+    "expected_incremental_conversions": 1922.287109375,
+    "cost_per_incremental": 0.0520213653373108,
+    "action_mix": {
+      "Mens E-Mail": 3219,
+      "Womens E-Mail": 1781
+    }
+  },
+  "risk": {
+    "n_selected": 5000,
+    "total_cost": 100.0,
+    "expected_incremental_conversions": 1114.027099609375,
+    "cost_per_incremental": 0.08976442317701627,
+    "action_mix": {
+      "Mens E-Mail": 3416,
+      "Womens E-Mail": 1584
+    }
+  },
+  "random": {
+    "n_selected": 5000,
+    "total_cost": 100.0,
+    "expected_incremental_conversions": 1240.947265625,
+    "cost_per_incremental": 0.08058360155186389,
+    "action_mix": {
+      "Mens E-Mail": 3266,
+      "Womens E-Mail": 1734
+    }
+  },
+  "base_conversion_rate": 0.00908203125
+}

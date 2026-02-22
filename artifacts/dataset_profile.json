@@ -1,0 +1,50 @@
+{
+  "n_rows": 64000,
+  "n_cols": 12,
+  "columns": [
+    "recency",
+    "history_segment",
+    "history",
+    "mens",
+    "womens",
+    "zip_code",
+    "newbie",
+    "channel",
+    "segment",
+    "visit",
+    "conversion",
+    "spend"
+  ],
+  "missing_by_col": {
+    "recency": 0,
+    "history_segment": 0,
+    "history": 0,
+    "mens": 0,
+    "womens": 0,
+    "zip_code": 0,
+    "newbie": 0,
+    "channel": 0,
+    "segment": 0,
+    "visit": 0,
+    "conversion": 0,
+    "spend": 0
+  },
+  "conversion_rate": 0.00903125,
+  "treatment_rate_overall": {
+    "No E-Mail": 0.33290625,
+    "Mens E-Mail": 0.332921875,
+    "Womens E-Mail": 0.334171875
+  },
+  "feature_cols": [
+    "recency",
+    "history_segment",
+    "history",
+    "mens",
+    "womens",
+    "zip_code",
+    "newbie",
+    "channel"
+  ],
+  "treatment_col": "segment",
+  "outcome_col": "conversion"
+}

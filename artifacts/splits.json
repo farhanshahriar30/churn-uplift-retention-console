@@ -1,0 +1,32 @@
+{
+  "seed": 42,
+  "test_size": 0.2,
+  "val_size_on_trainval": 0.2,
+  "train": {
+    "n": 40960,
+    "conversion_rate": 0.009033203125,
+    "treatment_rate": {
+      "No E-Mail": 0.33291015625,
+      "Mens E-Mail": 0.3329345703125,
+      "Womens E-Mail": 0.3341552734375
+    }
+  },
+  "val": {
+    "n": 10240,
+    "conversion_rate": 0.00908203125,
+    "treatment_rate": {
+      "No E-Mail": 0.33291015625,
+      "Mens E-Mail": 0.33291015625,
+      "Womens E-Mail": 0.3341796875
+    }
+  },
+  "test": {
+    "n": 12800,
+    "conversion_rate": 0.008984375,
+    "treatment_rate": {
+      "No E-Mail": 0.332890625,
+      "Mens E-Mail": 0.332890625,
+      "Womens E-Mail": 0.33421875
+    }
+  }
+}
