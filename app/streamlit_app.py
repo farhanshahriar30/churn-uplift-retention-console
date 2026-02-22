@@ -30,5 +30,6 @@ st.markdown(
 - **Churn Risk**: probability model metrics and top-risk users
 - **Uplift Modeling**: uplift distributions and AUUC/Qini-style summaries
 - **Targeting Simulator**: budget vs expected impact
+- **Model Monitoring**: drift/base-rate checks
 """
 )

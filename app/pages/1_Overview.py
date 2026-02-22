@@ -12,20 +12,24 @@ This page should load instantly and confirm the pipeline ran successfully.
 
 import sys
 from pathlib import Path
+import json
+import os
+import subprocess
 
+import streamlit as st
+
+# Ensure repo root is on PYTHONPATH so `import src...` works under Streamlit
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import json
-import streamlit as st
-
-import streamlit as st
-
 st.set_page_config(
-    page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
+    page_title="Churn + Uplift Retention Console",
+    page_icon="📈",
+    layout="wide",
 )
 
+ENABLE_LOCAL_TRAINING = os.getenv("ENABLE_LOCAL_TRAINING", "0") == "1"
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 
 
@@ -35,6 +39,45 @@ def _load_json(path: Path) -> dict:
 
 st.header("Overview")
 
+# -------- Actions (local-only training) --------
+st.subheader("Actions")
+
+colA, colB = st.columns(2)
+
+with colA:
+    st.caption("Reload artifacts (safe everywhere).")
+    if st.button("Reload artifacts"):
+        st.rerun()
+
+with colB:
+    st.caption("Train locally (disabled unless ENABLE_LOCAL_TRAINING=1).")
+    if not ENABLE_LOCAL_TRAINING:
+        st.button("Train models (local only)", disabled=True)
+        st.info(
+            "Training is disabled here. Set ENABLE_LOCAL_TRAINING=1 locally to enable it."
+        )
+    else:
+        if st.button("Train models (local only)"):
+            with st.spinner("Running training + evaluation scripts..."):
+                # Use the current interpreter (the one running Streamlit) so the venv is respected
+                subprocess.run(
+                    [sys.executable, "-m", "src.data.preprocess"], check=True
+                )
+                subprocess.run([sys.executable, "-m", "src.models.churn"], check=True)
+                subprocess.run(
+                    [sys.executable, "-m", "src.models.uplift.multitreatment"],
+                    check=True,
+                )
+                subprocess.run(
+                    [sys.executable, "-m", "src.eval.policy_metrics"], check=True
+                )
+
+            st.success("Done. Artifacts updated.")
+            st.rerun()
+
+st.divider()
+
+# -------- Snapshot cards --------
 col1, col2, col3 = st.columns(3)
 
 profile_path = ARTIFACTS_DIR / "dataset_profile.json"
@@ -107,9 +150,10 @@ with col3:
         )
 
 st.divider()
+
+# -------- Artifact checklist --------
 st.subheader("Artifacts present")
 
-# Simple artifact checklist
 artifact_files = [
     "dataset_profile.json",
     "splits.json",
@@ -119,8 +163,7 @@ artifact_files = [
     "policy_simulation_val.json",
 ]
 
-present = []
-missing = []
+present, missing = [], []
 for f in artifact_files:
     if (ARTIFACTS_DIR / f).exists():
         present.append(f)
