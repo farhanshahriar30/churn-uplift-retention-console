@@ -14,24 +14,11 @@ from src.config import FEATURE_COLS, CONTROL_LABEL, TREATMENT_LABELS, OUTCOME_CO
 from src.utils.io import load_joblib
 from src.data.treatment import filter_binary_task
 
-import streamlit as st
-
 st.set_page_config(
     page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
 )
 
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
-
-
-"""
-Phase A: Page purpose
-This page answers:
-1) How much uplift do we predict for Mens vs control and Womens vs control?
-2) For each user, which action is recommended (Mens/Womens/No E-Mail)?
-3) Does the uplift ranking look useful (AUUC computed from a Qini-style curve)?
-
-We compute everything from saved artifacts so this page is “read-only” and fast.
-"""
 
 
 def compute_uplifts(df: pd.DataFrame, payload: dict) -> dict[str, np.ndarray]:
@@ -159,21 +146,41 @@ with col2:
 
 st.divider()
 st.subheader("Per-treatment uplift distributions")
-st.line_chart(
-    pd.DataFrame({label: uplifts[label] for label in TREATMENT_LABELS}), height=200
+
+# Histogram comparison (cleaner than the noisy time-series style line plot)
+bins = st.slider("Histogram bins", min_value=20, max_value=120, value=60, step=10)
+
+hist_df = pd.DataFrame(
+    {
+        label: np.histogram(uplifts[label], bins=bins, range=(-1.0, 1.0))[0]
+        for label in TREATMENT_LABELS
+    }
 )
+st.bar_chart(hist_df, height=260)
+
+# Percentiles table (p5/p50/p95)
+pct_rows = []
+for label in TREATMENT_LABELS:
+    tau = uplifts[label]
+    pct_rows.append(
+        {
+            "treatment": label,
+            "p05": float(np.percentile(tau, 5)),
+            "p50": float(np.percentile(tau, 50)),
+            "p95": float(np.percentile(tau, 95)),
+        }
+    )
+
+st.caption("Uplift percentiles (helps summarize spread without noise).")
+st.dataframe(pd.DataFrame(pct_rows))
 
 st.divider()
 st.subheader("AUUC (one-vs-control evaluation)")
 
 rows = []
 for label in TREATMENT_LABELS:
-    # Build the correct binary subset for this label (adds T and filters out the other treatment)
     task = filter_binary_task(df, label)
-
-    # Compute tau for this binary task using the saved payload
     tau = compute_uplifts(task, payload)[label]
-
     curve = qini_curve(task, tau)
     rows.append({"treatment": label, "auuc": auuc(curve)})
 
