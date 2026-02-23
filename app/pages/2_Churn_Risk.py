@@ -43,16 +43,16 @@ st.info(
     """
 **What you’re seeing**
 
-This page predicts **who is likely to convert** (or “stay engaged”) in the next window.
+This page estimates **who is most likely to buy** in the next window.
 
-- **Conversion probability** is the model’s estimate of “chance this customer buys in the next period.”
-- **Lift** answers: “If we target the top X% most likely to convert, how much better is that than targeting randomly?”
-- **Deciles** show how customers behave as we move from low → high predicted probability:
-  the top decile should have a higher actual conversion rate than the bottom decile.
+- **Conversion probability** = the model’s estimate of “chance this customer buys soon.”
+- **Lift** answers: “If we focus on the top X% most likely to buy, how much better is that than picking customers at random?”
+- **Deciles** are simply **10 buckets** from lowest → highest predicted probability. If the model ranks well, the highest bucket should usually buy more often than the lowest bucket.
 
-This page is about **ranking and understanding baseline likelihood**. It does *not* tell you who to target with an offer (that’s uplift).
+This page helps with **ranking baseline likelihood**. It does *not* decide who should get an offer (that’s handled on the uplift and targeting pages).
 """
 )
+
 
 # Phase B: Load artifacts (use calibrated model if present for probability display)
 preprocess_payload = load_joblib(ARTIFACTS_DIR / "preprocess.joblib")
@@ -137,17 +137,18 @@ decile_table["lift_vs_base"] = (
     decile_table["actual_rate"] / base_rate if base_rate > 0 else np.nan
 )
 
-st.caption("Decile 10 contains customers with the highest predicted probability.")
 st.caption(
-    "Decile 10 = highest predicted probability. If the model ranks well, actual conversion should generally be higher in Decile 10 than Decile 1."
+    "Decile 10 = the customers the model thinks are most likely to buy; Decile 1 = least likely."
 )
+
 st.dataframe(decile_table)
 
 # Chart: actual vs predicted by decile
 chart_df = decile_table.set_index("decile")[["avg_pred", "actual_rate"]]
 st.caption(
-    "Two lines: average predicted probability vs actual conversion rate by decile. Some wobble is normal because conversions are rare."
+    "Predicted vs actual buying rate by bucket. Small ups and downs are normal because purchases are rare."
 )
+
 
 st.line_chart(chart_df)
 
@@ -172,8 +173,9 @@ cols_to_show = [
     "risk",
 ]
 st.caption(
-    "These are the highest predicted-probability customers. This is a ranking view (not yet a targeting recommendation)."
+    "Top-ranked customers by predicted likelihood to buy. This list is not yet the ‘who to target’ list."
 )
+
 
 st.dataframe(
     out.sort_values("p_conversion", ascending=False)[cols_to_show]

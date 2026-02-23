@@ -41,15 +41,16 @@ st.info(
     """
 **What you’re seeing**
 
-This dashboard is a decision console for retention campaigns.
+This dashboard helps decide **who to email** (and which email) to get the most **extra purchases** with a fixed budget.
 
-- **Dataset**: 64k customers and what we knew about them before the campaign (recency, spend history, channels, etc.).
-- **Splits**: the data is split into **train / validation / test** so we can build models and then verify they work on unseen customers.
-- **Policy Simulation**: a “what-if” estimate of how many *extra* conversions we expect if we target customers using the uplift strategy, compared with simpler strategies.
+- **Dataset**: 64k customers and what we knew about them before the campaign (how recently they bought, past spend, channel, etc.).
+- **Train / Validation / Test**: the data is separated into groups so we can build the models and then verify they work on customers the model hasn’t “seen” before.
+- **Policy Simulation**: a “what-if” estimate of how many *extra purchases* (conversions) we expect if we target customers using uplift (impact-based) targeting, compared with simpler strategies.
 
-If you only have 30 seconds: the goal is to **spend a fixed budget on outreach and maximize additional conversions**, not just contact the highest-risk users.
+If you only have 30 seconds: the goal is to **spend a fixed budget on outreach and maximize extra purchases**, not just contact the highest-risk users.
 """
 )
+
 
 st.divider()
 
@@ -115,8 +116,9 @@ with col3:
         st.write("Strategy comparison (expected incremental conversions):")
 
         st.caption(
-            "This compares strategies under the same constraints. Higher bar = more expected *incremental* conversions (additional purchases caused by targeting)."
+            "Same budget and capacity for all strategies. Higher bar = more expected **extra purchases** caused by the targeting choice."
         )
+
         st.bar_chart(
             {
                 "uplift": sim["uplift"]["expected_incremental_conversions"],

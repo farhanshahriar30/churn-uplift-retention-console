@@ -26,13 +26,14 @@ st.info(
 
 This page checks whether the data and campaign setup look stable.
 
-- **Base rates**: conversion rate across train/val/test. Big differences can mean the environment changed.
-- **Treatment mix**: % receiving No E-Mail vs Mens vs Womens. This should stay consistent because assignment was randomized.
-- **Feature summary**: quick scan to spot obvious shifts (for example, customers suddenly becoming “more urban” or spending patterns changing).
+- **Base rates**: how often customers buy (convert) in train/val/test. Big changes can mean customer behavior changed.
+- **Treatment mix**: % receiving No E-Mail vs Mens vs Womens. This should stay close to one-third each because assignment was randomized.
+- **Feature summary**: a quick scan to spot shifts (for example, customers becoming more “urban” or spending patterns changing).
 
-Business translation: this helps answer “Can we trust the model outputs today the way we trusted them when we trained it?”
+Simple takeaway: if these numbers change a lot, the model may behave differently than it did during training.
 """
 )
+
 
 # Phase C: Load the dataset splits
 train = pd.read_csv("data/processed/train.csv")
@@ -52,7 +53,7 @@ rates = pd.DataFrame(
     }
 )
 st.caption(
-    "If base conversion rate shifts a lot over time/splits, model performance can drift because customer behavior changed."
+    "If the baseline purchase rate changes a lot, model performance can drift because customer behavior changed."
 )
 
 st.dataframe(rates)
@@ -80,7 +81,7 @@ mix = pd.DataFrame(
     }
 )
 st.caption(
-    "Treatment assignment should stay close to ~1/3 each. Large deviations can indicate the experiment or targeting logic changed."
+    "Treatment mix should stay close to ~1/3 each. Large changes may mean the campaign assignment changed."
 )
 
 st.dataframe(mix)
@@ -113,7 +114,7 @@ def _summ(df: pd.DataFrame) -> dict:
 
 
 st.caption(
-    "Quick drift scan: compare train vs val vs test summaries. Big differences can signal a data shift worth investigating."
+    "Quick drift scan: compare train vs val vs test summaries. Big differences can be a sign the data shifted."
 )
 col1, col2, col3 = st.columns(3)
 with col1:

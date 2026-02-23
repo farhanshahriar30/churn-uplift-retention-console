@@ -109,20 +109,21 @@ st.info(
     """
 **What you’re seeing**
 
-Uplift answers a different question than risk:
+Uplift answers a different question than “risk”:
 
-> “If we send an email to this customer, how much does it *change* their chance of converting compared to sending nothing?”
+> **“If we email this customer, how much does it change their chance of buying compared to doing nothing?”**
 
-- **Mens uplift** = expected change in conversion if we send the Mens campaign vs No E-Mail.
-- **Womens uplift** = expected change in conversion if we send the Womens campaign vs No E-Mail.
-- **Best action mix** shows which option the model recommends most often (Mens / Womens / No E-Mail).
-- **AUUC** is a summary score that checks whether the uplift ranking is useful (higher means the model is better at finding people who truly benefit).
+- **Mens uplift**: expected change in purchase rate if we send the Mens email vs **No E-Mail**.
+- **Womens uplift**: expected change in purchase rate if we send the Womens email vs **No E-Mail**.
+- **Best action mix**: which option the model recommends most often (Mens / Womens / No E-Mail).
+- **Impact ranking score (AUUC)**: checks whether the model is good at putting the “most helped by email” customers near the top.
 
-Business translation: this helps avoid wasting offers on:
+Why this matters: it helps avoid emailing
 - people who would buy anyway, and
-- people who won’t respond even with an offer.
+- people who won’t respond even if we email them.
 """
 )
+
 
 split = st.radio("Split", ["val", "test"], horizontal=True)
 df = pd.read_csv(f"data/processed/{split}.csv")
@@ -137,7 +138,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Best action mix")
     st.caption(
-        "Recommended action per customer. **No E-Mail** means the model expects no incremental benefit from sending an email."
+        "Recommended action per customer. **No E-Mail** means the model expects emailing won’t help this customer."
     )
 
     st.bar_chart(rec["best_action"].value_counts())
@@ -163,8 +164,9 @@ hist_df = pd.DataFrame(
     }
 )
 st.caption(
-    "Right side = positive uplift (email increases conversion). Left side = negative uplift (email may reduce conversion)."
+    "Right side = emailing helps (more purchases). Left side = emailing hurts or doesn’t help."
 )
+
 
 st.bar_chart(hist_df, height=260)
 
@@ -181,11 +183,13 @@ for label in TREATMENT_LABELS:
     )
 
 st.caption(
-    "Percentiles summarize uplift spread. p50 is the median effect; p95 shows the high-responders tail."
+    "Percentiles summarize the spread. p50 is the typical customer; p95 highlights the strongest responders."
 )
+
 st.caption(
-    "AUUC checks whether the uplift ranking is useful. Higher AUUC means better at finding customers who truly benefit from outreach."
+    "AUUC (impact ranking score): higher means the model is better at ranking customers who truly benefit from outreach."
 )
+
 
 st.dataframe(pd.DataFrame(pct_rows))
 

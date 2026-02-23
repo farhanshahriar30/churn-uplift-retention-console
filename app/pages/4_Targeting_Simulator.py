@@ -27,25 +27,26 @@ st.info(
     """
 **What you’re seeing**
 
-This is the decision engine.
+This page turns the models into a **decision**: who to email, and which email to send.
 
 You set real-world constraints:
-- **Budget** (how much you can spend),
-- **Cost per email** (Mens / Womens),
-- **Max outreach volume** (capacity).
+- **Budget**: how much you can spend
+- **Cost per email**: Mens / Womens
+- **Max outreach volume**: how many people you can contact
 
 Then we compare three strategies under the same constraints:
-1) **Uplift targeting**: target customers who benefit most from outreach.
-2) **Risk targeting**: target customers based on a risk/likelihood score.
-3) **Random**: a baseline.
+1) **Uplift targeting**: email the people most likely to be helped by outreach.
+2) **Risk targeting**: email based on “likelihood/risk” scores (not necessarily impact).
+3) **Random**: a baseline for comparison.
 
 Key outputs:
-- **Expected incremental conversions**: how many *additional* conversions we expect because of targeting.
-- **Cost per incremental conversion**: efficiency, “how much spend per extra conversion.”
+- **Expected extra purchases** (incremental conversions): how many additional purchases we expect *because of* the targeting choice.
+- **Cost per extra purchase**: how much spend per additional purchase (lower is better).
 
-Business translation: this is where the model becomes a **policy** (who to contact, and with which campaign).
+This is the most “actionable” page: it shows the expected payoff of your targeting policy.
 """
 )
+
 
 # Phase C: Collect user inputs that define the policy constraints
 colA, colB, colC = st.columns(3)
@@ -66,7 +67,10 @@ with colC:
     cost_womens = st.number_input(
         "Cost per Womens email ($)", min_value=0.0, value=0.02, step=0.01
     )
-    st.caption("Objective is retained_customers for now (profit comes next).")
+    st.caption(
+        "Objective is ‘retained_customers’ for now. Profit optimization can be added next."
+    )
+
 
 # Phase D: Load the selected split and build a PolicyInputs object
 # PolicyInputs is the single config object used by the decision layer.
@@ -91,8 +95,9 @@ st.subheader("Results")
 
 # Phase F: Visual comparison first (fast to interpret)
 st.caption(
-    "All strategies use the same budget/capacity. The only difference is *who* they target. Higher bar = more expected incremental conversions."
+    "Same budget and capacity for all strategies. Higher bar = more expected **extra purchases** caused by the targeting strategy."
 )
+
 st.bar_chart(
     {
         "uplift": out["uplift"]["expected_incremental_conversions"],
@@ -104,8 +109,9 @@ st.bar_chart(
 
 # Phase G: Detailed metrics per strategy
 st.caption(
-    "Cost per incremental conversion = total spend ÷ expected incremental conversions (lower is better)."
+    "Cost per extra purchase = total spend ÷ expected extra purchases (lower is better)."
 )
+
 
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -150,11 +156,11 @@ st.subheader("Action mix (uplift strategy)")
 # Phase H: Show which email campaign gets chosen under uplift targeting
 if out["uplift"]["action_mix"]:
     st.caption(
-        "Given current constraints, this shows which campaign the uplift strategy chooses most often."
+        "Under these constraints, this shows which campaign the uplift strategy chooses most often."
     )
 
     st.bar_chart(out["uplift"]["action_mix"])
 else:
     st.info("No users selected under current constraints.")
 
-st.caption(f"Base conversion rate ({split}): {out['base_conversion_rate']:.4f}")
+st.caption(f"Baseline purchase rate in this split: {out['base_conversion_rate']:.4f}")
