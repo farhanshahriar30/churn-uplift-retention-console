@@ -65,5 +65,22 @@ We use **conversion** as the primary outcome.
 
 ---
 
-## Repo structure
+
+---
+
+## Quickstart (run the deployed demo locally)
+
+This repo includes **precomputed artifacts** (`artifacts/`) and **processed splits** (`data/processed/`) so the dashboard can run immediately.
+
+### 1) Create a virtual environment and install dependencies
+
+```bash
+python -m venv .venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# macOS/Linux:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+
 
