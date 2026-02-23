@@ -9,6 +9,12 @@ if str(REPO_ROOT) not in sys.path:
 import pandas as pd
 import streamlit as st
 
+if "page_config_set" not in st.session_state:
+    st.set_page_config(
+        page_title="Retention Decision Console", page_icon="📈", layout="wide"
+    )
+    st.session_state["page_config_set"] = True
+
 from src.config import FEATURE_COLS, OUTCOME_CONVERSION, TREATMENT_COL
 
 # Phase B: Page purpose (lightweight monitoring checks)

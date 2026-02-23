@@ -16,6 +16,12 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+if "page_config_set" not in st.session_state:
+    st.set_page_config(
+        page_title="Retention Decision Console", page_icon="📈", layout="wide"
+    )
+    st.session_state["page_config_set"] = True
+
 # Add repo root to PYTHONPATH so `import src...` works when Streamlit runs pages
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:

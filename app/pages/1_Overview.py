@@ -16,6 +16,12 @@ import subprocess
 
 import streamlit as st
 
+if "page_config_set" not in st.session_state:
+    st.set_page_config(
+        page_title="Retention Decision Console", page_icon="📈", layout="wide"
+    )
+    st.session_state["page_config_set"] = True
+
 # Ensure repo root is on PYTHONPATH so `import src...` works under Streamlit
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:

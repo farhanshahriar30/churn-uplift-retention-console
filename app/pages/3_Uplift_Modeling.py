@@ -10,6 +10,12 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+if "page_config_set" not in st.session_state:
+    st.set_page_config(
+        page_title="Retention Decision Console", page_icon="📈", layout="wide"
+    )
+    st.session_state["page_config_set"] = True
+
 from src.config import FEATURE_COLS, CONTROL_LABEL, TREATMENT_LABELS, OUTCOME_CONVERSION
 from src.data.treatment import filter_binary_task
 from src.utils.io import load_joblib
