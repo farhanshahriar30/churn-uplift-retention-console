@@ -16,10 +16,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Optional: make sidebar feel branded (this sits above the page navigation)
-st.sidebar.title("Retention Decision Console 🎯")
-st.sidebar.caption("Navigate pages below")
-
 st.title("Churn + Uplift Retention Console 📈")
 st.caption(
     "Use the pages in the left sidebar to explore risk, uplift, and targeting policies."
