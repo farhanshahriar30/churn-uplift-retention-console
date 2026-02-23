@@ -9,6 +9,22 @@ app/pages/ as separate pages, so this file focuses on:
 
 import streamlit as st
 
+# Phase B: Global config must be the FIRST Streamlit command and called only once per app
+st.set_page_config(
+    page_title="Retention Decision Console",
+    page_icon="📈",
+    layout="wide",
+)
+
+# Optional: make sidebar feel branded (this sits above the page navigation)
+st.sidebar.title("Retention Decision Console 🎯")
+st.sidebar.caption("Navigate pages below")
+
+st.title("Churn + Uplift Retention Console 📈")
+st.caption(
+    "Use the pages in the left sidebar to explore risk, uplift, and targeting policies."
+)
+
 st.info(
     """
 ### In plain English
@@ -37,18 +53,6 @@ This console aims to maximize **ROI per message** by targeting customers with th
 2) **Uplift Modeling**: shows who benefits from each email campaign.  
 3) **Targeting Simulator**: set a budget and see which strategy produces more extra purchases.
 """
-)
-
-
-st.set_page_config(
-    page_title="Retention Decision Console",
-    page_icon="📈",
-    layout="wide",
-)
-
-st.title("Churn + Uplift Retention Console 📈")
-st.caption(
-    "Use the pages in the left sidebar to explore risk, uplift, and targeting policies."
 )
 
 st.markdown(

@@ -21,11 +21,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-st.set_page_config(
-    page_title="Churn + Uplift Retention Console",
-    page_icon="📈",
-    layout="wide",
-)
 
 ENABLE_LOCAL_TRAINING = os.getenv("ENABLE_LOCAL_TRAINING", "0") == "1"
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"

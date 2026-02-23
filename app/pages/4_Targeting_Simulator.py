@@ -12,7 +12,6 @@ import streamlit as st
 from src.eval.policy_metrics import simulate_strategies
 from src.policy.targeting import PolicyInputs
 
-st.set_page_config(page_title="Targeting Simulator", page_icon="🎯", layout="wide")
 
 # Phase B: Page purpose
 # This is an interactive "what-if" console:

@@ -14,9 +14,6 @@ from src.config import FEATURE_COLS, CONTROL_LABEL, TREATMENT_LABELS, OUTCOME_CO
 from src.data.treatment import filter_binary_task
 from src.utils.io import load_joblib
 
-st.set_page_config(
-    page_title="Churn + Uplift Retention Console", page_icon="📈", layout="wide"
-)
 
 ARTIFACTS_DIR = REPO_ROOT / "artifacts"
 

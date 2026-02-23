@@ -11,8 +11,6 @@ import streamlit as st
 
 from src.config import FEATURE_COLS, OUTCOME_CONVERSION, TREATMENT_COL
 
-st.set_page_config(page_title="Model Monitoring", page_icon="🩺", layout="wide")
-
 # Phase B: Page purpose (lightweight monitoring checks)
 # - base conversion rate by split
 # - treatment mix by split
