@@ -5,4 +5,5 @@ matplotlib
 streamlit
 joblib
 xgboost
+streamlit>=1.21.0
 altair<5
