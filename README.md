@@ -9,7 +9,7 @@ Instead of only predicting “who is likely to churn/buy,” this project estima
 
 ---
 
-## What this project does (plain English)
+## What this project does
 
 You can think of this as a “campaign decision console”:
 
