@@ -68,7 +68,7 @@ We use **conversion** as the primary outcome.
 
 ---
 
-## Quickstart (run the deployed demo locally)
+## Quickstart (run locally)
 
 This repo includes **precomputed artifacts** (`artifacts/`) and **processed splits** (`data/processed/`) so the dashboard can run immediately.
 
@@ -150,6 +150,20 @@ python -m src.eval.policy_metrics
 ```
 streamlit run app/streamlit_app.py
 ```
+
+## Results snapshot (from the randomized experiment)
+
+Because assignment is randomized (RCT), we can directly estimate average campaign lift:
+
+- **Mens E-Mail conversion:** ~1.253% vs **No E-Mail:** ~0.573% (**+0.68pp**)
+- **Womens E-Mail conversion:** ~0.884% vs **No E-Mail:** ~0.573% (**+0.31pp**)
+
+In the validation policy simulation (**5,000 outreach capacity, $200 budget at $0.02/email**):
+- **Uplift targeting:** ~41 expected incremental conversions (CPI ≈ $2.43)  
+- **Risk targeting:** ~38 (CPI ≈ $2.62)  
+- **Random targeting:** ~36 (CPI ≈ $2.80)
+
+> “Expected incremental conversions” are model-based estimates from predicted uplift, used for policy comparison under identical constraints.
 
 ## Dashboard pages (what each does)
 
