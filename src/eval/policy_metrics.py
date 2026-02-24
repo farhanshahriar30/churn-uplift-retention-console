@@ -18,6 +18,12 @@ Given a selected set S:
 - cost_per_incremental = total_cost / expected_incremental_conversions  (if > 0)
 
 These are model-based expectations (good for simulation + UI).
+
+Phase C: Realism diagnostics (added)
+We also report:
+- avg_uplift_selected, median_uplift_selected
+- implied_uplift_rate = expected_incremental_conversions / n_selected
+These help sanity-check magnitude while keeping comparisons identical.
 """
 
 from __future__ import annotations
@@ -39,7 +45,7 @@ from src.policy.targeting import PolicyInputs, _action_cost
 
 def recommend_from_uplift_payload(df: pd.DataFrame, payload: dict) -> pd.DataFrame:
     """
-    Phase C: Build per-user recommended action and best uplift using only payload contents.
+    Phase D: Build per-user recommended action and best uplift using only payload contents.
     """
     preprocessor = payload["preprocessor"]
     treatment_models = payload["treatment_models"]
@@ -61,20 +67,26 @@ def recommend_from_uplift_payload(df: pd.DataFrame, payload: dict) -> pd.DataFra
     best_action = np.array([TREATMENT_LABELS[i] for i in best_idx], dtype=object)
     best_action = np.where(best_uplift > 0, best_action, CONTROL_LABEL)
 
-    rec = pd.DataFrame(
+    return pd.DataFrame(
         {"best_action": best_action, "best_uplift": best_uplift}, index=df.index
     )
-    return rec
 
 
 def churn_probs(df: pd.DataFrame) -> np.ndarray:
     """
-    Phase D: Get baseline conversion probabilities from the churn/outcome model.
-    We use the saved preprocessing + churn model artifacts.
+    Phase E: Get baseline conversion probabilities from the outcome model.
+
+    We prefer the calibrated model for probability-based views and ordering.
+    If it's missing, we fall back to the base model.
     """
     preprocess_payload = load_joblib(ARTIFACTS_DIR / "preprocess.joblib")
-    model = load_joblib(ARTIFACTS_DIR / "churn_model.joblib")
     preprocessor = preprocess_payload["preprocessor"]
+
+    cal_path = ARTIFACTS_DIR / "churn_model_calibrated.joblib"
+    if cal_path.exists():
+        model = load_joblib(cal_path)
+    else:
+        model = load_joblib(ARTIFACTS_DIR / "churn_model.joblib")
 
     X = preprocessor.transform(df[FEATURE_COLS])
     return model.predict_proba(X)[:, 1]
@@ -87,11 +99,11 @@ def _apply_constraints(
     inputs: PolicyInputs,
 ) -> pd.DataFrame:
     """
-    Phase E: Apply max_volume + budget constraints in the given order.
+    Phase F: Apply max_volume + budget constraints in the given order.
 
     We only consider actionable users:
     - best_action != control
-    - best_uplift > 0  (expected to help)
+    - best_uplift > 0
     """
     tmp = rec.loc[ordered_idx].copy()
     tmp = tmp[(tmp["best_action"] != CONTROL_LABEL) & (tmp["best_uplift"] > 0)].copy()
@@ -118,7 +130,7 @@ def _apply_constraints(
 
 def simulate_strategies(df: pd.DataFrame, inputs: PolicyInputs) -> dict:
     """
-    Phase F: Run the three strategies and return comparable metrics.
+    Phase G: Run the three strategies and return comparable metrics.
     """
     uplift_payload = load_joblib(ARTIFACTS_DIR / "uplift_model.joblib")
     rec = recommend_from_uplift_payload(df, uplift_payload)
@@ -145,18 +157,25 @@ def simulate_strategies(df: pd.DataFrame, inputs: PolicyInputs) -> dict:
                 "n_selected": 0,
                 "total_cost": 0.0,
                 "expected_incremental_conversions": 0.0,
+                "implied_uplift_rate": 0.0,
+                "avg_uplift_selected": 0.0,
+                "median_uplift_selected": 0.0,
                 "cost_per_incremental": None,
                 "action_mix": {},
             }
 
         inc = float(selected["best_uplift"].sum())
+        n = int(len(selected))
         cost = float(selected["cost"].sum())
         cpi = (cost / inc) if inc > 0 else None
 
         return {
-            "n_selected": int(len(selected)),
+            "n_selected": n,
             "total_cost": cost,
             "expected_incremental_conversions": inc,
+            "implied_uplift_rate": (inc / n) if n > 0 else 0.0,
+            "avg_uplift_selected": float(selected["best_uplift"].mean()),
+            "median_uplift_selected": float(selected["best_uplift"].median()),
             "cost_per_incremental": cpi,
             "action_mix": selected["best_action"].value_counts().to_dict(),
         }
@@ -181,7 +200,6 @@ def simulate_strategies(df: pd.DataFrame, inputs: PolicyInputs) -> dict:
 
 
 if __name__ == "__main__":
-    # Validation split simulation (you can swap to test.csv later)
     val = pd.read_csv("data/processed/val.csv")
 
     inputs = PolicyInputs(
@@ -195,8 +213,6 @@ if __name__ == "__main__":
 
     out = simulate_strategies(val, inputs)
     print(json.dumps(out, indent=2))
-
-    from src.config import ARTIFACTS_DIR
 
     (ARTIFACTS_DIR / "policy_simulation_val.json").write_text(json.dumps(out, indent=2))
     print("Saved:", ARTIFACTS_DIR / "policy_simulation_val.json")

@@ -9,31 +9,40 @@
   "uplift": {
     "n_selected": 5000,
     "total_cost": 100.0,
-    "expected_incremental_conversions": 1922.287109375,
-    "cost_per_incremental": 0.0520213653373108,
+    "expected_incremental_conversions": 41.17727012812509,
+    "implied_uplift_rate": 0.008235454025625017,
+    "avg_uplift_selected": 0.008235454025625017,
+    "median_uplift_selected": 0.008130513109364294,
+    "cost_per_incremental": 2.428524272950711,
     "action_mix": {
-      "Mens E-Mail": 3219,
-      "Womens E-Mail": 1781
+      "Mens E-Mail": 4999,
+      "Womens E-Mail": 1
     }
   },
   "risk": {
     "n_selected": 5000,
     "total_cost": 100.0,
-    "expected_incremental_conversions": 1114.027099609375,
-    "cost_per_incremental": 0.08976442317701627,
+    "expected_incremental_conversions": 38.10317851359912,
+    "implied_uplift_rate": 0.007620635702719824,
+    "avg_uplift_selected": 0.007620635702719824,
+    "median_uplift_selected": 0.007844464204933125,
+    "cost_per_incremental": 2.624452969568136,
     "action_mix": {
-      "Mens E-Mail": 3416,
-      "Womens E-Mail": 1584
+      "Mens E-Mail": 4992,
+      "Womens E-Mail": 8
     }
   },
   "random": {
     "n_selected": 5000,
     "total_cost": 100.0,
-    "expected_incremental_conversions": 1240.947265625,
-    "cost_per_incremental": 0.08058360155186389,
+    "expected_incremental_conversions": 35.7488658116741,
+    "implied_uplift_rate": 0.00714977316233482,
+    "avg_uplift_selected": 0.00714977316233482,
+    "median_uplift_selected": 0.0076524056419139536,
+    "cost_per_incremental": 2.797291542808727,
     "action_mix": {
-      "Mens E-Mail": 3266,
-      "Womens E-Mail": 1734
+      "Mens E-Mail": 4986,
+      "Womens E-Mail": 14
     }
   },
   "base_conversion_rate": 0.00908203125
