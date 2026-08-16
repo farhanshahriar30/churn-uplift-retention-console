@@ -1,5 +1,11 @@
 # Retention Uplift Console 🎯  
 **Churn + Uplift + Targeting Simulator (Causal Decision Dashboard)**
+![Retention Uplift Console demo](assets/demo.gif)
+
+**[Live app](YOUR_STREAMLIT_URL)**
+
+A causal targeting tool that estimates per-customer uplift from a randomized
+email experiment and recommends the best campaign action under a fixed budget.
 
 A deployed Streamlit dashboard that helps answer a practical retention question:
 
